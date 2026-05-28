@@ -1,0 +1,2 @@
+-- Data seeding is handled by DataSeeder.java (CommandLineRunner)
+-- This file intentionally left empty

@@ -1,0 +1,55 @@
+type Campaign {
+    id: ID!
+    name: String!
+    description: String
+    status: CampaignStatus!
+    budget: Float
+    spentBudget: Float!
+    startDate: DateTime
+    endDate: DateTime
+    targetAudience: String
+    channels: [Channel!]!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    engagementRate: Float!
+    impressions: Int!
+    clicks: Int!
+}
+
+type CampaignEdge {
+    node: Campaign!
+    cursor: String!
+}
+
+type CampaignConnection {
+    edges: [CampaignEdge!]!
+    pageInfo: PageInfo!
+    totalCount: Int!
+}
+
+input CampaignFilterInput {
+    search: String
+    status: CampaignStatus
+    channelId: ID
+}
+
+input CreateCampaignInput {
+    name: String!
+    description: String
+    budget: Float
+    startDate: DateTime
+    endDate: DateTime
+    targetAudience: String
+    channelIds: [ID!]
+}
+
+input UpdateCampaignInput {
+    name: String
+    description: String
+    status: CampaignStatus
+    budget: Float
+    startDate: DateTime
+    endDate: DateTime
+    targetAudience: String
+    channelIds: [ID!]
+}

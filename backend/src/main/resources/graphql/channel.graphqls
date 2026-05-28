@@ -1,0 +1,12 @@
+type Channel {
+    id: ID!
+    name: String!
+    type: ChannelType!
+    handle: String!
+    isActive: Boolean!
+    followerCount: Int!
+    iconUrl: String
+    color: String
+    connectedAt: DateTime!
+    metrics: [EngagementMetric!]!
+}

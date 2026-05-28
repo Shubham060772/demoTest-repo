@@ -1,0 +1,55 @@
+type Customer {
+    id: ID!
+    firstName: String!
+    lastName: String!
+    email: String!
+    phone: String
+    company: String
+    tags: [String!]!
+    segment: String
+    avatarUrl: String
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    messages(first: Int, after: String): MessageConnection!
+    campaigns: [Campaign!]!
+}
+
+type CustomerEdge {
+    node: Customer!
+    cursor: String!
+}
+
+type CustomerConnection {
+    edges: [CustomerEdge!]!
+    pageInfo: PageInfo!
+    totalCount: Int!
+}
+
+input CustomerFilterInput {
+    search: String
+    segment: String
+    tag: String
+    company: String
+}
+
+input CreateCustomerInput {
+    firstName: String!
+    lastName: String!
+    email: String!
+    phone: String
+    company: String
+    tags: [String!]
+    segment: String
+    avatarUrl: String
+}
+
+input UpdateCustomerInput {
+    firstName: String
+    lastName: String
+    email: String
+    phone: String
+    company: String
+    tags: [String!]
+    segment: String
+    avatarUrl: String
+}

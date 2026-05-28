@@ -1,0 +1,40 @@
+type Query {
+    # Customer queries
+    customers(first: Int, after: String, filter: CustomerFilterInput): CustomerConnection!
+    customer(id: ID!): Customer
+
+    # Campaign queries
+    campaigns(first: Int, after: String, filter: CampaignFilterInput): CampaignConnection!
+    campaign(id: ID!): Campaign
+
+    # Channel queries
+    channels: [Channel!]!
+    channel(id: ID!): Channel
+
+    # Message queries
+    messages(first: Int, after: String, filter: MessageFilterInput): MessageConnection!
+
+    # Analytics queries
+    analyticsSummary(channelId: ID, startDate: DateTime, endDate: DateTime): AnalyticsSummary!
+    dashboard: Dashboard!
+
+    # Team queries
+    teams: [Team!]!
+    team(id: ID!): Team
+    users: [User!]!
+}
+
+type Mutation {
+    # Customer mutations
+    createCustomer(input: CreateCustomerInput!): Customer!
+    updateCustomer(id: ID!, input: UpdateCustomerInput!): Customer!
+    deleteCustomer(id: ID!): Boolean!
+
+    # Campaign mutations
+    createCampaign(input: CreateCampaignInput!): Campaign!
+    updateCampaign(id: ID!, input: UpdateCampaignInput!): Campaign!
+
+    # Message mutations
+    sendMessage(input: CreateMessageInput!): Message!
+    markMessageRead(id: ID!): Message!
+}

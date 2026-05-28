@@ -1,0 +1,19 @@
+type Team {
+    id: ID!
+    name: String!
+    description: String
+    members: [User!]!
+    createdAt: DateTime!
+}
+
+type User {
+    id: ID!
+    firstName: String!
+    lastName: String!
+    email: String!
+    role: UserRole!
+    avatarUrl: String
+    team: Team
+    isActive: Boolean!
+    createdAt: DateTime!
+}
