@@ -1,0 +1,115 @@
+.sidebar {
+  width: var(--sidebar-width);
+  min-height: 100vh;
+  background: var(--color-bg-secondary);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 1.25rem 1.25rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.logoIcon {
+  width: 32px;
+  height: 32px;
+  background: var(--color-brand-gradient);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.logoText {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.nav {
+  flex: 1;
+  padding: 1rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.navSection {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  padding: 0.5rem 0.625rem 0.375rem;
+  display: block;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  position: relative;
+  text-decoration: none;
+}
+
+.navItem:hover {
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+}
+
+.navItem.active {
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--color-brand-primary);
+}
+
+.activeIndicator {
+  position: absolute;
+  right: -0.75rem;
+  width: 3px;
+  height: 18px;
+  background: var(--color-brand-gradient);
+  border-radius: var(--radius-full) 0 0 var(--radius-full);
+}
+
+.sidebarFooter {
+  padding: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.footerCard {
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+}
+
+.footerTitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-brand-primary);
+  margin-bottom: 2px;
+}
+
+.footerSub {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+}
