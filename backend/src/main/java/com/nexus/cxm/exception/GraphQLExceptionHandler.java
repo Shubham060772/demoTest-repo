@@ -1,31 +1,56 @@
 package com.nexus.cxm.exception;
 
+import graphql.ExceptionWhileDataFetching;
 import graphql.GraphQLError;
 import graphql.GraphqlErrorBuilder;
-import graphql.schema.DataFetchingEnvironment;
-import org.springframework.graphql.execution.DataFetcherExceptionResolverAdapter;
-import org.springframework.graphql.execution.ErrorType;
+import graphql.ErrorClassification;
+import graphql.kickstart.execution.error.GraphQLErrorHandler;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
-public class GraphQLExceptionHandler extends DataFetcherExceptionResolverAdapter {
+public class GraphQLExceptionHandler implements GraphQLErrorHandler {
+
+    public enum CustomErrorType implements ErrorClassification {
+        NOT_FOUND,
+        BAD_REQUEST,
+        INTERNAL_ERROR
+    }
 
     @Override
-    protected GraphQLError resolveToSingleError(Throwable ex, DataFetchingEnvironment env) {
-        if (ex instanceof ResourceNotFoundException) {
-            return GraphqlErrorBuilder.newError(env)
-                    .errorType(ErrorType.NOT_FOUND)
-                    .message(ex.getMessage())
-                    .build();
-        } else if (ex instanceof BusinessValidationException) {
-            return GraphqlErrorBuilder.newError(env)
-                    .errorType(ErrorType.BAD_REQUEST)
-                    .message(ex.getMessage())
+    public List<GraphQLError> processErrors(List<GraphQLError> errors) {
+        return errors.stream().map(this::getOrMapError).collect(Collectors.toList());
+    }
+
+    private GraphQLError getOrMapError(GraphQLError error) {
+        if (error instanceof ExceptionWhileDataFetching) {
+            ExceptionWhileDataFetching dataFetchingError = (ExceptionWhileDataFetching) error;
+            Throwable ex = dataFetchingError.getException();
+
+            if (ex instanceof ResourceNotFoundException) {
+                return GraphqlErrorBuilder.newError()
+                        .message(ex.getMessage())
+                        .errorType(CustomErrorType.NOT_FOUND)
+                        .locations(dataFetchingError.getLocations())
+                        .path(dataFetchingError.getPath())
+                        .build();
+            } else if (ex instanceof BusinessValidationException) {
+                return GraphqlErrorBuilder.newError()
+                        .message(ex.getMessage())
+                        .errorType(CustomErrorType.BAD_REQUEST)
+                        .locations(dataFetchingError.getLocations())
+                        .path(dataFetchingError.getPath())
+                        .build();
+            }
+            return GraphqlErrorBuilder.newError()
+                    .message("An internal server error occurred")
+                    .errorType(CustomErrorType.INTERNAL_ERROR)
+                    .locations(dataFetchingError.getLocations())
+                    .path(dataFetchingError.getPath())
                     .build();
         }
-        return GraphqlErrorBuilder.newError(env)
-                .errorType(ErrorType.INTERNAL_ERROR)
-                .message("An internal server error occurred")
-                .build();
+        return error;
     }
 }

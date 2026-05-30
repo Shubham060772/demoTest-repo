@@ -2,6 +2,7 @@ B:\projects\test\backend\src\main\java\com\nexus\cxm\model\dto\connection\Connec
 B:\projects\test\backend\src\main\java\com\nexus\cxm\model\dto\input\CreateCustomerInput.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\service\TeamService.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\service\CampaignService.java
+B:\projects\test\backend\src\main\java\com\nexus\cxm\model\dto\DailyMetric.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\repository\CampaignRepository.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\resolver\field\CampaignFieldResolver.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\resolver\query\CustomerQueryResolver.java
@@ -26,6 +27,7 @@ B:\projects\test\backend\src\main\java\com\nexus\cxm\model\dto\input\CustomerFil
 B:\projects\test\backend\src\main\java\com\nexus\cxm\model\dto\connection\PageInfo.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\resolver\mutation\CampaignMutationResolver.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\model\entity\Message.java
+B:\projects\test\backend\src\main\java\com\nexus\cxm\model\dto\Dashboard.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\exception\BusinessValidationException.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\resolver\query\TeamQueryResolver.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\model\entity\Campaign.java
@@ -34,11 +36,14 @@ B:\projects\test\backend\src\main\java\com\nexus\cxm\repository\CustomerReposito
 B:\projects\test\backend\src\main\java\com\nexus\cxm\resolver\mutation\CustomerMutationResolver.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\model\dto\input\MessageFilterInput.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\resolver\field\CustomerFieldResolver.java
+B:\projects\test\backend\src\main\java\com\nexus\cxm\model\dto\SentimentBreakdown.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\config\CorsConfig.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\resolver\query\CampaignQueryResolver.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\exception\ResourceNotFoundException.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\model\entity\Channel.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\model\entity\Customer.java
+B:\projects\test\backend\src\main\java\com\nexus\cxm\model\dto\AnalyticsSummary.java
+B:\projects\test\backend\src\main\java\com\nexus\cxm\model\dto\ChannelPerformance.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\resolver\field\MessageFieldResolver.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\repository\EngagementMetricRepository.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\service\CustomerService.java

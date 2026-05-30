@@ -4,27 +4,44 @@ import com.nexus.cxm.model.dto.connection.Connection;
 import com.nexus.cxm.model.dto.input.CustomerFilterInput;
 import com.nexus.cxm.model.entity.Customer;
 import com.nexus.cxm.service.CustomerService;
+import io.leangen.graphql.annotations.GraphQLArgument;
+import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.RequiredArgsConstructor;
-import org.springframework.graphql.data.method.annotation.Argument;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
-import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Service;
 
-@Controller
+/**
+ * Resolves customer root fields declared in the GraphQL schema.
+ *
+ * Contract mapping:
+ *   Operation Name (client-only)   Root Field     Resolver
+ *   ───────────────────────────────────────────────────────────────
+ *   GetCustomers               →   customers   →  @GraphQLQuery(name = "customers")
+ *   GetCustomer                →   customer    →  @GraphQLQuery(name = "customer")
+ */
+@Service
 @RequiredArgsConstructor
 public class CustomerQueryResolver {
 
     private final CustomerService customerService;
 
-    @QueryMapping
+    // ── Frontend operation: GetCustomers ─────────────────────────────────────
+    // query GetCustomers($first: Int, $after: String, $filter: CustomerFilterInput) {
+    //   customers(first: $first, after: $after, filter: $filter) { ... }
+    // }
+    @GraphQLQuery(name = "customers")
     public Connection<Customer> customers(
-            @Argument Integer first,
-            @Argument String after,
-            @Argument CustomerFilterInput filter) {
+            @GraphQLArgument(name = "first") Integer first,
+            @GraphQLArgument(name = "after") String after,
+            @GraphQLArgument(name = "filter") CustomerFilterInput filter) {
         return customerService.getCustomers(first, after, filter);
     }
 
-    @QueryMapping
-    public Customer customer(@Argument Long id) {
+    // ── Frontend operation: GetCustomer ──────────────────────────────────────
+    // query GetCustomer($id: ID!) {
+    //   customer(id: $id) { ... }
+    // }
+    @GraphQLQuery(name = "customer")
+    public Customer customer(@GraphQLArgument(name = "id") Long id) {
         return customerService.getCustomerById(id);
     }
 }

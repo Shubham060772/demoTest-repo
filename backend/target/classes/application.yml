@@ -27,17 +27,13 @@ spring:
     init:
       mode: never
 
-  graphql:
-    graphiql:
+  spqr:
+    http:
       enabled: true
-      path: /graphiql
-    path: /graphql
-    schema:
-      printer:
-        enabled: true
-    cors:
-      allowed-origins: "http://localhost:3000"
-      allowed-methods: "GET,POST,OPTIONS"
+      endpoint: /graphql
+    gui:
+      enabled: true
+      endpoint: /graphiql
 
 server:
   port: 8080

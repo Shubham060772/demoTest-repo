@@ -4,31 +4,53 @@ import com.nexus.cxm.model.entity.Team;
 import com.nexus.cxm.model.entity.User;
 import com.nexus.cxm.service.TeamService;
 import com.nexus.cxm.service.UserService;
+import io.leangen.graphql.annotations.GraphQLArgument;
+import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.RequiredArgsConstructor;
-import org.springframework.graphql.data.method.annotation.Argument;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
-import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Controller
+/**
+ * Resolves team and user root fields declared in the GraphQL schema.
+ *
+ * Contract mapping:
+ *   Operation Name (client-only)   Root Field   Resolver
+ *   ─────────────────────────────────────────────────────────────
+ *   GetTeams                   →   teams     →  @GraphQLQuery(name = "teams")
+ *   GetTeam                    →   team      →  @GraphQLQuery(name = "team")
+ *   GetUsers                   →   users     →  @GraphQLQuery(name = "users")
+ */
+@Service
 @RequiredArgsConstructor
 public class TeamQueryResolver {
 
     private final TeamService teamService;
     private final UserService userService;
 
-    @QueryMapping
+    // ── Frontend operation: GetTeams ──────────────────────────────────────────
+    // query GetTeams {
+    //   teams { ... }
+    // }
+    @GraphQLQuery(name = "teams")
     public List<Team> teams() {
         return teamService.getAllTeams();
     }
 
-    @QueryMapping
-    public Team team(@Argument Long id) {
+    // ── Frontend operation: GetTeam ───────────────────────────────────────────
+    // query GetTeam($id: ID!) {
+    //   team(id: $id) { ... }
+    // }
+    @GraphQLQuery(name = "team")
+    public Team team(@GraphQLArgument(name = "id") Long id) {
         return teamService.getTeamById(id);
     }
 
-    @QueryMapping
+    // ── Frontend operation: GetUsers ──────────────────────────────────────────
+    // query GetUsers {
+    //   users { ... }
+    // }
+    @GraphQLQuery(name = "users")
     public List<User> users() {
         return userService.getAllUsers();
     }

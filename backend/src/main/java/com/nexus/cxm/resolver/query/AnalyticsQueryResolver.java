@@ -1,19 +1,27 @@
 package com.nexus.cxm.resolver.query;
 
+import com.nexus.cxm.model.dto.*;
 import com.nexus.cxm.model.entity.*;
 import com.nexus.cxm.repository.*;
 import com.nexus.cxm.service.*;
+import io.leangen.graphql.annotations.GraphQLArgument;
+import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.RequiredArgsConstructor;
-import org.springframework.graphql.data.method.annotation.Argument;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
-import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-@Controller
+/**
+ * Resolves analytics root fields declared in the GraphQL schema.
+ *
+ * Contract mapping:
+ *   Operation Name (client-only)   Root Field           Resolver
+ *   ─────────────────────────────────────────────────────────────────────────
+ *   GetAnalyticsSummary        →   analyticsSummary  →  @GraphQLQuery(name = "analyticsSummary")
+ *   GetDashboard               →   dashboard         →  @GraphQLQuery(name = "dashboard")
+ */
+@Service
 @RequiredArgsConstructor
 public class AnalyticsQueryResolver {
 
@@ -24,13 +32,16 @@ public class AnalyticsQueryResolver {
     private final ChannelService channelService;
     private final EngagementMetricRepository engagementMetricRepository;
     private final MessageRepository messageRepository;
-    private final ChannelRepository channelRepository;
 
-    @QueryMapping
-    public Map<String, Object> analyticsSummary(
-            @Argument Long channelId,
-            @Argument OffsetDateTime startDate,
-            @Argument OffsetDateTime endDate) {
+    // ── Frontend operation: GetAnalyticsSummary ──────────────────────────────
+    // query GetAnalyticsSummary($channelId: ID, $startDate: DateTime, $endDate: DateTime) {
+    //   analyticsSummary(channelId: $channelId, startDate: $startDate, endDate: $endDate) { ... }
+    // }
+    @GraphQLQuery(name = "analyticsSummary")
+    public AnalyticsSummary analyticsSummary(
+            @GraphQLArgument(name = "channelId") Long channelId,
+            @GraphQLArgument(name = "startDate") OffsetDateTime startDate,
+            @GraphQLArgument(name = "endDate") OffsetDateTime endDate) {
 
         List<EngagementMetric> metrics = analyticsService.getMetrics(channelId, startDate, endDate);
 
@@ -48,58 +59,63 @@ public class AnalyticsQueryResolver {
         long neutral = messages.stream().filter(m -> m.getSentiment() == Message.SentimentType.NEUTRAL).count();
         long total = Math.max(messages.size(), 1);
 
-        Map<String, Object> sentimentBreakdown = new HashMap<>();
-        sentimentBreakdown.put("positive", (int) positive);
-        sentimentBreakdown.put("negative", (int) negative);
-        sentimentBreakdown.put("neutral", (int) neutral);
-        sentimentBreakdown.put("positivePercent", positive * 100.0 / total);
-        sentimentBreakdown.put("negativePercent", negative * 100.0 / total);
-        sentimentBreakdown.put("neutralPercent", neutral * 100.0 / total);
+        SentimentBreakdown sentimentBreakdown = SentimentBreakdown.builder()
+                .positive((int) positive)
+                .negative((int) negative)
+                .neutral((int) neutral)
+                .positivePercent(positive * 100.0 / total)
+                .negativePercent(negative * 100.0 / total)
+                .neutralPercent(neutral * 100.0 / total)
+                .build();
 
         // Channel performance
         List<Channel> channels = channelId != null
                 ? List.of(channelService.getChannelById(channelId))
                 : channelService.getAllChannels();
 
-        List<Map<String, Object>> channelPerformance = channels.stream().map(ch -> {
+        List<ChannelPerformance> channelPerformance = channels.stream().map(ch -> {
             List<EngagementMetric> chMetrics = analyticsService.getMetricsByChannel(ch.getId());
             int chImpressions = chMetrics.stream().mapToInt(EngagementMetric::getImpressions).sum();
             int chClicks = chMetrics.stream().mapToInt(EngagementMetric::getClicks).sum();
             double chRate = chMetrics.stream().mapToDouble(EngagementMetric::getEngagementRate).average().orElse(0.0);
             long chMessages = messageRepository.findWithFilters(null, ch.getId(), null, null, null).size();
 
-            Map<String, Object> perf = new HashMap<>();
-            perf.put("channel", ch);
-            perf.put("impressions", chImpressions);
-            perf.put("clicks", chClicks);
-            perf.put("engagementRate", chRate);
-            perf.put("messageCount", (int) chMessages);
-            return perf;
+            return ChannelPerformance.builder()
+                    .channel(ch)
+                    .impressions(chImpressions)
+                    .clicks(chClicks)
+                    .engagementRate(chRate)
+                    .messageCount((int) chMessages)
+                    .build();
         }).toList();
 
         // Daily metrics
-        List<Map<String, Object>> dailyMetrics = metrics.stream().map(m -> {
-            Map<String, Object> day = new HashMap<>();
-            day.put("date", m.getDate());
-            day.put("impressions", m.getImpressions());
-            day.put("clicks", m.getClicks());
-            day.put("engagements", m.getLikes() + m.getShares() + m.getComments());
-            return day;
+        List<DailyMetric> dailyMetrics = metrics.stream().map(m -> {
+            return DailyMetric.builder()
+                    .date(m.getDate())
+                    .impressions(m.getImpressions())
+                    .clicks(m.getClicks())
+                    .engagements(m.getLikes() + m.getShares() + m.getComments())
+                    .build();
         }).toList();
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("totalImpressions", totalImpressions);
-        result.put("totalClicks", totalClicks);
-        result.put("totalEngagements", totalEngagements);
-        result.put("averageEngagementRate", avgEngagementRate);
-        result.put("sentimentBreakdown", sentimentBreakdown);
-        result.put("channelPerformance", channelPerformance);
-        result.put("dailyMetrics", dailyMetrics);
-        return result;
+        return AnalyticsSummary.builder()
+                .totalImpressions(totalImpressions)
+                .totalClicks(totalClicks)
+                .totalEngagements(totalEngagements)
+                .averageEngagementRate(avgEngagementRate)
+                .sentimentBreakdown(sentimentBreakdown)
+                .channelPerformance(channelPerformance)
+                .dailyMetrics(dailyMetrics)
+                .build();
     }
 
-    @QueryMapping
-    public Map<String, Object> dashboard() {
+    // ── Frontend operation: GetDashboard ─────────────────────────────────────
+    // query GetDashboard {
+    //   dashboard { ... }
+    // }
+    @GraphQLQuery(name = "dashboard")
+    public Dashboard dashboard() {
         long totalCustomers = customerService.countCustomers();
         long activeCampaigns = campaignService.countActiveCampaigns();
         long totalMessages = messageService.countMessages();
@@ -114,32 +130,33 @@ public class AnalyticsQueryResolver {
         List<Campaign> topCampaigns = campaignService.getTopCampaigns(5);
 
         List<Channel> channels = channelService.getAllChannels();
-        List<Map<String, Object>> channelBreakdown = channels.stream().map(ch -> {
+        List<ChannelPerformance> channelBreakdown = channels.stream().map(ch -> {
             List<EngagementMetric> chMetrics = analyticsService.getMetricsByChannel(ch.getId());
             int chImpressions = chMetrics.stream().mapToInt(EngagementMetric::getImpressions).sum();
             int chClicks = chMetrics.stream().mapToInt(EngagementMetric::getClicks).sum();
             double chRate = chMetrics.stream().mapToDouble(EngagementMetric::getEngagementRate).average().orElse(0.0);
             long chMessages = messageRepository.findWithFilters(null, ch.getId(), null, null, null).size();
 
-            Map<String, Object> perf = new HashMap<>();
-            perf.put("channel", ch);
-            perf.put("impressions", chImpressions);
-            perf.put("clicks", chClicks);
-            perf.put("engagementRate", chRate);
-            perf.put("messageCount", (int) chMessages);
-            return perf;
+            return ChannelPerformance.builder()
+                    .channel(ch)
+                    .impressions(chImpressions)
+                    .clicks(chClicks)
+                    .engagementRate(chRate)
+                    .messageCount((int) chMessages)
+                    .build();
         }).toList();
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("totalCustomers", (int) totalCustomers);
-        result.put("activeCampaigns", (int) activeCampaigns);
-        result.put("totalMessages", (int) totalMessages);
-        result.put("unreadMessages", (int) unreadMessages);
-        result.put("totalChannels", (int) totalChannels);
-        result.put("overallEngagementRate", overallEngagementRate);
-        result.put("recentMessages", recentMessages);
-        result.put("topCampaigns", topCampaigns);
-        result.put("channelBreakdown", channelBreakdown);
-        return result;
+        return Dashboard.builder()
+                .totalCustomers((int) totalCustomers)
+                .activeCampaigns((int) activeCampaigns)
+                .totalMessages((int) totalMessages)
+                .unreadMessages((int) unreadMessages)
+                .totalChannels((int) totalChannels)
+                .overallEngagementRate(overallEngagementRate)
+                .recentMessages(recentMessages)
+                .topCampaigns(topCampaigns)
+                .channelBreakdown(channelBreakdown)
+                .build();
     }
 }
+
