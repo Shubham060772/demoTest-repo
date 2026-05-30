@@ -38,6 +38,7 @@ com\nexus\cxm\config\DataSeeder.class
 com\nexus\cxm\resolver\mutation\CustomerMutationResolver.class
 com\nexus\cxm\model\entity\Campaign$CampaignStatus.class
 com\nexus\cxm\resolver\field\MessageFieldResolver.class
+com\nexus\cxm\config\GraphQLConfig$1.class
 com\nexus\cxm\service\TeamService.class
 com\nexus\cxm\model\entity\User$UserRole.class
 com\nexus\cxm\resolver\mutation\CampaignMutationResolver.class

@@ -34,7 +34,7 @@ public class Customer {
     private String phone;
     private String company;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "customer_tags", joinColumns = @JoinColumn(name = "customer_id"))
     @Column(name = "tag")
     @Builder.Default

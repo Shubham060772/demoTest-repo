@@ -41,10 +41,11 @@ public class CampaignService {
     }
 
     public List<Channel> getChannelsForCampaign(Long campaignId) {
-        return campaignChannelRepository.findByCampaignId(campaignId)
+        List<Long> channelIds = campaignChannelRepository.findByCampaignId(campaignId)
                 .stream()
-                .map(CampaignChannel::getChannel)
+                .map(cc -> cc.getChannel().getId())
                 .collect(Collectors.toList());
+        return channelRepository.findAllById(channelIds);
     }
 
     @Transactional
