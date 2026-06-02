@@ -48,7 +48,7 @@ export const GET_CAMPAIGNS = gql`
 
 export const GET_CAMPAIGN = gql`
   ${CAMPAIGN_FRAGMENT}
-  query GetCampaign($id: ID!) {
+  query GetCampaign($id: Long!) {
     campaign(id: $id) {
       ...CampaignFields
       channels {

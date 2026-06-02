@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const GET_ANALYTICS_SUMMARY = gql`
-  query GetAnalyticsSummary($channelId: ID, $startDate: DateTime, $endDate: DateTime) {
+  query GetAnalyticsSummary($channelId: Long, $startDate: OffsetDateTime, $endDate: OffsetDateTime) {
     analyticsSummary(channelId: $channelId, startDate: $startDate, endDate: $endDate) {
       totalImpressions
       totalClicks

@@ -10,6 +10,8 @@ import {
   BarChart, Bar, PieChart, Pie, Cell, Legend
 } from "recharts";
 import { TrendingUp, Eye, MousePointer, MessageSquare, AlertCircle } from "lucide-react";
+import { can } from "@/lib/acl";
+import { isOn } from "@/lib/featureFlags";
 
 const RADIAN = Math.PI / 180;
 
@@ -24,10 +26,32 @@ const CHART_COLORS = ["#6366f1", "#8b5cf6", "#06b6d4", "#10b981", "#f59e0b", "#e
 export default function AnalyticsPage() {
   const [channelId, setChannelId] = useState<string | null>(null);
 
+  // Permission & feature-flag checks
+  const canViewAnalytics = can('p:analytics_view');
+  const canAdvancedAnalytics = can('p:advanced_analytics');
+  const showAdvancedAnalytics = canAdvancedAnalytics && isOn('ADVANCED_ANALYTICS');
+  const showSmartRecommendations = isOn('SMART_RECOMMENDATIONS', 'D');
+
+  const shouldFetchAdvancedData = canAdvancedAnalytics && isOn('ADVANCED_ANALYTICS');
+
   const channelsQ = useQuery(GET_CHANNELS);
   const { data, loading, error } = useQuery(GET_ANALYTICS_SUMMARY, {
     variables: { channelId: channelId || null },
+    skip: !canViewAnalytics,
   });
+
+  if (!canViewAnalytics) {
+    return (
+      <>
+        <Header title="Analytics" subtitle="Access Denied" />
+        <div className="empty-state">
+          <div className="empty-state-icon"><AlertCircle size={28} /></div>
+          <p className="empty-state-title">Access Denied</p>
+          <p className="empty-state-description">You need the analytics_view permission to see this page.</p>
+        </div>
+      </>
+    );
+  }
 
   const channels = channelsQ.data?.channels || [];
   const summary = data?.analyticsSummary;

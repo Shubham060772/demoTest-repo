@@ -15,8 +15,16 @@ import java.util.List;
 public class AnalyticsService {
 
     private final EngagementMetricRepository engagementMetricRepository;
+    private final FeatureFlagService featureFlagService;
 
     public List<EngagementMetric> getMetrics(Long channelId, OffsetDateTime startDate, OffsetDateTime endDate) {
+        // ADVANCED_ANALYTICS flag enables date-range filtering on metrics
+        boolean advancedAnalytics = featureFlagService.isOn("ADVANCED_ANALYTICS");
+        if (!advancedAnalytics) {
+            // v1: ignore date-range filters
+            startDate = null;
+            endDate = null;
+        }
         return engagementMetricRepository.findWithFilters(channelId, startDate, endDate);
     }
 

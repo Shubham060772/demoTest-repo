@@ -7,6 +7,9 @@ import { CREATE_CUSTOMER, DELETE_CUSTOMER } from "@/graphql/mutations/customers"
 import Header from "@/components/layout/Header";
 import { Search, Plus, Trash2, Eye, Mail, Phone, Building2, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { can } from "@/lib/acl";
+import AclStore from "@/lib/acl";
+import { isOn } from "@/lib/featureFlags";
 
 
 
@@ -27,6 +30,13 @@ export default function CustomersPage() {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", company: "", segment: "Consumer" });
 
+  // Permission & feature-flag checks
+  const canViewCustomers = can('p:user_view');
+  const canEditCustomers = AclStore.can('p:user_edit');
+  const canDeleteCustomers = can('p:user_delete');
+  const showNewUserFlow = isOn('NEW_USER_FLOW');
+  const showUserProfileV2 = isOn('USER_PROFILE_V2', 'D');
+
   const { data, loading, error, refetch } = useQuery(GET_CUSTOMERS, {
     variables: { first: 20, filter: search ? { search } : null },
   });
@@ -41,6 +51,19 @@ export default function CustomersPage() {
 
   const customers = data?.customers?.edges?.map((e: any) => e.node) || [];
   const totalCount = data?.customers?.totalCount || 0;
+
+  if (!canViewCustomers) {
+    return (
+      <>
+        <Header title="Customers" subtitle="Access Denied" />
+        <div className="empty-state">
+          <div className="empty-state-icon"><AlertCircle size={28} /></div>
+          <p className="empty-state-title">Access Denied</p>
+          <p className="empty-state-description">You need the user_view permission to see customers.</p>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -60,9 +83,11 @@ export default function CustomersPage() {
               style={{ paddingLeft: "2.25rem" }}
             />
           </div>
-          <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-            <Plus size={16} /> Add Customer
-          </button>
+          {canEditCustomers && (
+            <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+              <Plus size={16} /> Add Customer
+            </button>
+          )}
         </div>
 
         {/* Table */}
@@ -145,17 +170,19 @@ export default function CustomersPage() {
                             <Eye size={14} />
                           </button>
                         </Link>
-                        <button
-                          className="btn btn-danger btn-sm"
-                          style={{ padding: "0.375rem" }}
-                          onClick={() => {
-                            if (confirm("Delete this customer?")) {
-                              deleteCustomer({ variables: { id: c.id } });
-                            }
-                          }}
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                        {canDeleteCustomers && (
+                          <button
+                            className="btn btn-danger btn-sm"
+                            style={{ padding: "0.375rem" }}
+                            onClick={() => {
+                              if (confirm("Delete this customer?")) {
+                                deleteCustomer({ variables: { id: c.id } });
+                              }
+                            }}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

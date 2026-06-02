@@ -11,6 +11,8 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell
 } from "recharts";
 import styles from "./page.module.css";
+import { can } from "@/lib/acl";
+import { isOn } from "@/lib/featureFlags";
 
 function getStatusBadgeClass(status: string) {
   const map: Record<string, string> = {
@@ -48,7 +50,17 @@ function formatNumber(n: number) {
 }
 
 export default function DashboardPage() {
-  const { data, loading, error } = useQuery(GET_DASHBOARD);
+  // Permission & feature-flag checks
+  const canViewAnalytics = can('p:analytics_view');
+  const canViewUsers = can('p:user_view');
+  const canViewCampaigns = can('p:campaign_view');
+  const showSmartRecommendations = isOn('SMART_RECOMMENDATIONS');
+  const showCampaignDashboardV2 = isOn('CAMPAIGN_DASHBOARD_V2');
+  const showAdvancedAnalytics = can('p:advanced_analytics') && isOn('ADVANCED_ANALYTICS');
+
+  const { data, loading, error } = useQuery(GET_DASHBOARD, {
+    skip: !canViewAnalytics,
+  });
 
   if (loading) {
     return (
@@ -186,7 +198,8 @@ export default function DashboardPage() {
         </div>
 
         <div className={styles.bottomGrid}>
-          {/* Recent Messages */}
+          {/* Recent Messages — gated by p:user_view */}
+          {canViewUsers && (
           <div className="card">
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
               <h3>Recent Messages</h3>
@@ -218,8 +231,10 @@ export default function DashboardPage() {
               ))}
             </div>
           </div>
+          )}
 
-          {/* Top Campaigns */}
+          {/* Top Campaigns — gated by p:campaign_view + SMART_RECOMMENDATIONS */}
+          {canViewCampaigns && showSmartRecommendations && (
           <div className="card">
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
               <h3>Top Campaigns</h3>
@@ -253,6 +268,7 @@ export default function DashboardPage() {
               ))}
             </div>
           </div>
+          )}
         </div>
       </div>
     </>

@@ -16,7 +16,7 @@ export const GET_CHANNELS = gql`
 `;
 
 export const GET_CHANNEL = gql`
-  query GetChannel($id: ID!) {
+  query GetChannel($id: Long!) {
     channel(id: $id) {
       id
       name

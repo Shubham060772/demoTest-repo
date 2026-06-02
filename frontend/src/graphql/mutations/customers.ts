@@ -17,7 +17,7 @@ export const CREATE_CUSTOMER = gql`
 `;
 
 export const UPDATE_CUSTOMER = gql`
-  mutation UpdateCustomer($id: ID!, $input: UpdateCustomerInput!) {
+  mutation UpdateCustomer($id: Long!, $input: UpdateCustomerInput!) {
     updateCustomer(id: $id, input: $input) {
       id
       firstName
@@ -33,7 +33,7 @@ export const UPDATE_CUSTOMER = gql`
 `;
 
 export const DELETE_CUSTOMER = gql`
-  mutation DeleteCustomer($id: ID!) {
+  mutation DeleteCustomer($id: Long!) {
     deleteCustomer(id: $id)
   }
 `;

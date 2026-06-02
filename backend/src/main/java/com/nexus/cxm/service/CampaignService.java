@@ -27,10 +27,13 @@ public class CampaignService {
     private final CampaignRepository campaignRepository;
     private final CampaignChannelRepository campaignChannelRepository;
     private final ChannelRepository channelRepository;
+    private final FeatureFlagService featureFlagService;
 
     public Connection<Campaign> getCampaigns(Integer first, String after, CampaignFilterInput filter) {
+        // CAMPAIGN_DASHBOARD_V2 flag enables status-based filtering
+        boolean dashboardV2 = featureFlagService.isOn("CAMPAIGN_DASHBOARD_V2");
         String search = filter != null ? filter.search() : null;
-        Campaign.CampaignStatus status = filter != null ? filter.status() : null;
+        Campaign.CampaignStatus status = (filter != null && dashboardV2) ? filter.status() : null;
         List<Campaign> campaigns = campaignRepository.findWithFilters(search, status);
         return Connection.of(campaigns, first != null ? first : 10, after);
     }
@@ -100,6 +103,8 @@ public class CampaignService {
     }
 
     public List<Campaign> getTopCampaigns(int limit) {
+        // SMART_RECOMMENDATIONS flag enables AI-ordered campaign ranking
+        boolean smartRecs = featureFlagService.isOn("SMART_RECOMMENDATIONS");
         return campaignRepository.findTopCampaigns(PageRequest.of(0, limit));
     }
 }

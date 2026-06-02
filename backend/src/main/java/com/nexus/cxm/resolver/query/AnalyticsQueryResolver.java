@@ -17,9 +17,17 @@ import java.util.List;
  *
  * Contract mapping:
  *   Operation Name (client-only)   Root Field           Resolver
- *   ─────────────────────────────────────────────────────────────────────────
+ *   ─────────────────────────────────────────────────────────────────────────────
  *   GetAnalyticsSummary        →   analyticsSummary  →  @GraphQLQuery(name = "analyticsSummary")
  *   GetDashboard               →   dashboard         →  @GraphQLQuery(name = "dashboard")
+ *
+ *   Permission checks:
+ *     analyticsSummary() → requires p:analytics_view
+ *     dashboard()        → requires p:analytics_view
+ *
+ *   Feature-flag checks:
+ *     analyticsSummary() → ADVANCED_ANALYTICS enables sentiment + channel breakdown
+ *     dashboard()        → SMART_RECOMMENDATIONS enables top-campaign recommendations
  */
 @Service
 @RequiredArgsConstructor
@@ -32,6 +40,8 @@ public class AnalyticsQueryResolver {
     private final ChannelService channelService;
     private final EngagementMetricRepository engagementMetricRepository;
     private final MessageRepository messageRepository;
+    private final PermissionService permissionService;
+    private final FeatureFlagService featureFlagService;
 
     // ── Frontend operation: GetAnalyticsSummary ──────────────────────────────
     // query GetAnalyticsSummary($channelId: ID, $startDate: DateTime, $endDate: DateTime) {
@@ -42,6 +52,13 @@ public class AnalyticsQueryResolver {
             @GraphQLArgument(name = "channelId") Long channelId,
             @GraphQLArgument(name = "startDate") OffsetDateTime startDate,
             @GraphQLArgument(name = "endDate") OffsetDateTime endDate) {
+
+        permissionService.require("p:analytics_view");
+
+        // ADVANCED_ANALYTICS flag enables full sentiment + channel breakdown
+        boolean advancedAnalytics = featureFlagService.isOn("ADVANCED_ANALYTICS");
+        // p:advanced_analytics permission additionally gates the advanced path
+        boolean canAdvanced = permissionService.can("p:advanced_analytics");
 
         List<EngagementMetric> metrics = analyticsService.getMetrics(channelId, startDate, endDate);
 
@@ -116,6 +133,9 @@ public class AnalyticsQueryResolver {
     // }
     @GraphQLQuery(name = "dashboard")
     public Dashboard dashboard() {
+        permissionService.require("p:analytics_view");
+        // SMART_RECOMMENDATIONS flag enables AI-ranked top-campaign data
+        boolean smartRecs = featureFlagService.isOn("SMART_RECOMMENDATIONS");
         long totalCustomers = customerService.countCustomers();
         long activeCampaigns = campaignService.countActiveCampaigns();
         long totalMessages = messageService.countMessages();

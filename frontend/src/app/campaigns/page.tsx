@@ -7,6 +7,9 @@ import { CREATE_CAMPAIGN, UPDATE_CAMPAIGN } from "@/graphql/mutations/campaigns"
 import Header from "@/components/layout/Header";
 import { Search, Plus, Eye, AlertCircle, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
+import { can } from "@/lib/acl";
+import AclStore from "@/lib/acl";
+import { isOn } from "@/lib/featureFlags";
 
 function getStatusBadgeClass(status: string) {
   const map: Record<string, string> = {
@@ -32,6 +35,13 @@ export default function CampaignsPage() {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", budget: "" });
 
+  // Permission & feature-flag checks
+  const canViewCampaigns = can('p:campaign_view');
+  const canEditCampaigns = AclStore.can('p:campaign_edit');
+  const canPublishCampaigns = can('p:campaign_publish');
+  const showDashboardV2 = isOn('CAMPAIGN_DASHBOARD_V2');
+  const showBulkOps = isOn('BULK_OPERATIONS');
+
   const { data, loading, error, refetch } = useQuery(GET_CAMPAIGNS, {
     variables: {
       first: 20,
@@ -47,6 +57,19 @@ export default function CampaignsPage() {
   const totalCount = data?.campaigns?.totalCount || 0;
 
   const statuses = ["DRAFT", "SCHEDULED", "ACTIVE", "PAUSED", "COMPLETED", "CANCELLED"];
+
+  if (!canViewCampaigns) {
+    return (
+      <>
+        <Header title="Campaigns" subtitle="Access Denied" />
+        <div className="empty-state">
+          <div className="empty-state-icon"><AlertCircle size={28} /></div>
+          <p className="empty-state-title">Access Denied</p>
+          <p className="empty-state-description">You don&apos;t have permission to view campaigns.</p>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -65,13 +88,20 @@ export default function CampaignsPage() {
               style={{ paddingLeft: "2.25rem" }}
             />
           </div>
-          <select className="input select" style={{ width: 160 }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="">All Statuses</option>
-            {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-            <Plus size={16} /> New Campaign
-          </button>
+          {showDashboardV2 && (
+            <select className="input select" style={{ width: 160 }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="">All Statuses</option>
+              {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          )}
+          {showBulkOps && canEditCampaigns && (
+            <span className="badge badge-info" style={{ fontSize: "0.75rem" }}>Bulk Ops</span>
+          )}
+          {canEditCampaigns && (
+            <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+              <Plus size={16} /> New Campaign
+            </button>
+          )}
         </div>
 
         {/* Campaign Cards */}

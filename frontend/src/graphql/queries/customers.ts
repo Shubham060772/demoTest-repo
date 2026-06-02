@@ -39,7 +39,7 @@ export const GET_CUSTOMERS = gql`
 
 export const GET_CUSTOMER = gql`
   ${CUSTOMER_FRAGMENT}
-  query GetCustomer($id: ID!) {
+  query GetCustomer($id: Long!) {
     customer(id: $id) {
       ...CustomerFields
       messages(first: 10) {

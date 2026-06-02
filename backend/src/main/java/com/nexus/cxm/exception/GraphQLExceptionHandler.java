@@ -16,6 +16,7 @@ public class GraphQLExceptionHandler implements GraphQLErrorHandler {
     public enum CustomErrorType implements ErrorClassification {
         NOT_FOUND,
         BAD_REQUEST,
+        FORBIDDEN,
         INTERNAL_ERROR
     }
 
@@ -40,6 +41,13 @@ public class GraphQLExceptionHandler implements GraphQLErrorHandler {
                 return GraphqlErrorBuilder.newError()
                         .message(ex.getMessage())
                         .errorType(CustomErrorType.BAD_REQUEST)
+                        .locations(dataFetchingError.getLocations())
+                        .path(dataFetchingError.getPath())
+                        .build();
+            } else if (ex instanceof AccessDeniedException) {
+                return GraphqlErrorBuilder.newError()
+                        .message(ex.getMessage())
+                        .errorType(CustomErrorType.FORBIDDEN)
                         .locations(dataFetchingError.getLocations())
                         .path(dataFetchingError.getPath())
                         .build();

@@ -14,6 +14,7 @@ B:\projects\test\backend\src\main\java\com\nexus\cxm\model\entity\EngagementMetr
 B:\projects\test\backend\src\main\java\com\nexus\cxm\repository\CampaignChannelRepository.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\repository\MessageRepository.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\resolver\field\ChannelFieldResolver.java
+B:\projects\test\backend\src\main\java\com\nexus\cxm\exception\AccessDeniedException.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\repository\UserRepository.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\model\dto\connection\Edge.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\repository\TeamRepository.java
@@ -49,6 +50,7 @@ B:\projects\test\backend\src\main\java\com\nexus\cxm\repository\EngagementMetric
 B:\projects\test\backend\src\main\java\com\nexus\cxm\service\CustomerService.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\resolver\mutation\MessageMutationResolver.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\resolver\query\MessageQueryResolver.java
+B:\projects\test\backend\src\main\java\com\nexus\cxm\service\PermissionService.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\model\dto\input\CreateMessageInput.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\model\dto\input\UpdateCustomerInput.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\model\entity\User.java
@@ -58,3 +60,4 @@ B:\projects\test\backend\src\main\java\com\nexus\cxm\exception\GraphQLExceptionH
 B:\projects\test\backend\src\main\java\com\nexus\cxm\model\entity\Team.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\service\MessageService.java
 B:\projects\test\backend\src\main\java\com\nexus\cxm\service\AnalyticsService.java
+B:\projects\test\backend\src\main\java\com\nexus\cxm\service\FeatureFlagService.java

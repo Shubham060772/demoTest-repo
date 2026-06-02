@@ -6,6 +6,9 @@ import { GET_MESSAGES } from "@/graphql/queries/messages";
 import { MARK_MESSAGE_READ } from "@/graphql/mutations/messages";
 import Header from "@/components/layout/Header";
 import { MessageSquare, AlertCircle, CheckCircle, Filter, ArrowDown, ArrowUp } from "lucide-react";
+import { can } from "@/lib/acl";
+import AclStore from "@/lib/acl";
+import { isOn } from "@/lib/featureFlags";
 
 function getSentimentClass(s: string) {
   const map: Record<string, string> = { POSITIVE: "badge-success", NEUTRAL: "badge-neutral", NEGATIVE: "badge-danger" };
@@ -41,6 +44,12 @@ export default function MessagesPage() {
   const [sentimentFilter, setSentimentFilter] = useState("");
   const [inboundFilter, setInboundFilter] = useState("");
 
+  // Permission & feature-flag checks
+  const canViewMessages = can('p:user_view');
+  const canReplyMessages = AclStore.can('p:user_edit');
+  const showSmartRecommendations = isOn('SMART_RECOMMENDATIONS');
+  const showUserProfileV2 = isOn('USER_PROFILE_V2');
+
   const { data, loading, error, refetch } = useQuery(GET_MESSAGES, {
     variables: {
       first: 30,
@@ -56,6 +65,19 @@ export default function MessagesPage() {
 
   const messages = data?.messages?.edges?.map((e: any) => e.node) || [];
   const totalCount = data?.messages?.totalCount || 0;
+
+  if (!canViewMessages) {
+    return (
+      <>
+        <Header title="Messages" subtitle="Access Denied" />
+        <div className="empty-state">
+          <div className="empty-state-icon"><AlertCircle size={28} /></div>
+          <p className="empty-state-title">Access Denied</p>
+          <p className="empty-state-description">You need the user_view permission to see messages.</p>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -144,7 +166,7 @@ export default function MessagesPage() {
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.5rem", flexShrink: 0 }}>
                   <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>{timeAgo(msg.createdAt)}</span>
                   <span className="badge badge-neutral" style={{ background: `${msg.channel.color}15`, color: msg.channel.color }}>{msg.channel.name}</span>
-                  {msg.status === "UNREAD" && (
+                  {msg.status === "UNREAD" && canReplyMessages && (
                     <button
                       className="btn btn-ghost btn-sm"
                       onClick={() => markRead({ variables: { id: msg.id } })}
@@ -152,6 +174,9 @@ export default function MessagesPage() {
                     >
                       <CheckCircle size={12} /> Mark Read
                     </button>
+                  )}
+                  {showSmartRecommendations && msg.isInbound && (
+                    <span className="badge badge-info" style={{ fontSize: "0.6875rem" }}>AI Reply</span>
                   )}
                 </div>
               </div>

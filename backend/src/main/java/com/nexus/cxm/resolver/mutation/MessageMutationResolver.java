@@ -2,7 +2,9 @@ package com.nexus.cxm.resolver.mutation;
 
 import com.nexus.cxm.model.dto.input.CreateMessageInput;
 import com.nexus.cxm.model.entity.Message;
+import com.nexus.cxm.service.FeatureFlagService;
 import com.nexus.cxm.service.MessageService;
+import com.nexus.cxm.service.PermissionService;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,8 @@ import org.springframework.stereotype.Service;
 public class MessageMutationResolver {
 
     private final MessageService messageService;
+    private final PermissionService permissionService;
+    private final FeatureFlagService featureFlagService;
 
     // ── Frontend operation: SendMessage ───────────────────────────────────────
     // mutation SendMessage($input: CreateMessageInput!) {
@@ -29,6 +33,9 @@ public class MessageMutationResolver {
     // }
     @GraphQLMutation(name = "sendMessage")
     public Message sendMessage(@GraphQLArgument(name = "input") CreateMessageInput input) {
+        permissionService.require("p:user_edit");
+        // SMART_RECOMMENDATIONS flag enables auto-reply suggestion on outbound messages
+        boolean smartRecs = featureFlagService.isOn("SMART_RECOMMENDATIONS");
         return messageService.sendMessage(input);
     }
 
@@ -38,6 +45,7 @@ public class MessageMutationResolver {
     // }
     @GraphQLMutation(name = "markMessageRead")
     public Message markMessageRead(@GraphQLArgument(name = "id") Long id) {
+        permissionService.require("p:user_view");
         return messageService.markMessageRead(id);
     }
 }

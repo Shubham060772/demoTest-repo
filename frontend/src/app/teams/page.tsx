@@ -4,6 +4,8 @@ import { useQuery } from "@apollo/client/react";
 import { GET_TEAMS } from "@/graphql/queries/teams";
 import Header from "@/components/layout/Header";
 import { Users, AlertCircle, Shield, BarChart2, Headphones, Eye, UserCheck } from "lucide-react";
+import { can } from "@/lib/acl";
+import { isOn } from "@/lib/featureFlags";
 
 function getRoleIcon(role: string) {
   const map: Record<string, any> = {
@@ -28,8 +30,27 @@ function getInitials(first: string, last: string) {
 const AVATAR_COLORS = ["#6366f1", "#8b5cf6", "#06b6d4", "#10b981", "#f59e0b", "#ef4444"];
 
 export default function TeamsPage() {
-  const { data, loading, error } = useQuery(GET_TEAMS);
+  // Permission & feature-flag checks
+  const canManageUsers = can('p:user_manage');
+  const showUserProfileV2 = isOn('USER_PROFILE_V2');
+
+  const { data, loading, error } = useQuery(GET_TEAMS, {
+    skip: !canManageUsers,
+  });
   const teams = data?.teams || [];
+
+  if (!canManageUsers) {
+    return (
+      <>
+        <Header title="Teams" subtitle="Access Denied" />
+        <div className="empty-state">
+          <div className="empty-state-icon"><AlertCircle size={28} /></div>
+          <p className="empty-state-title">Access Denied</p>
+          <p className="empty-state-description">You need the user_manage permission to view teams.</p>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

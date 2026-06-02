@@ -16,7 +16,7 @@ export const CREATE_CAMPAIGN = gql`
 `;
 
 export const UPDATE_CAMPAIGN = gql`
-  mutation UpdateCampaign($id: ID!, $input: UpdateCampaignInput!) {
+  mutation UpdateCampaign($id: Long!, $input: UpdateCampaignInput!) {
     updateCampaign(id: $id, input: $input) {
       id
       name

@@ -19,7 +19,7 @@ export const SEND_MESSAGE = gql`
 `;
 
 export const MARK_MESSAGE_READ = gql`
-  mutation MarkMessageRead($id: ID!) {
+  mutation MarkMessageRead($id: Long!) {
     markMessageRead(id: $id) {
       id
       status

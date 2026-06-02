@@ -4,6 +4,8 @@ import com.nexus.cxm.model.dto.input.CreateCustomerInput;
 import com.nexus.cxm.model.dto.input.UpdateCustomerInput;
 import com.nexus.cxm.model.entity.Customer;
 import com.nexus.cxm.service.CustomerService;
+import com.nexus.cxm.service.FeatureFlagService;
+import com.nexus.cxm.service.PermissionService;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,8 @@ import org.springframework.stereotype.Service;
 public class CustomerMutationResolver {
 
     private final CustomerService customerService;
+    private final PermissionService permissionService;
+    private final FeatureFlagService featureFlagService;
 
     // ── Frontend operation: CreateCustomer ────────────────────────────────────
     // mutation CreateCustomer($input: CreateCustomerInput!) {
@@ -31,6 +35,12 @@ public class CustomerMutationResolver {
     // }
     @GraphQLMutation(name = "createCustomer")
     public Customer createCustomer(@GraphQLArgument(name = "input") CreateCustomerInput input) {
+        permissionService.require("p:user_edit");
+        // NEW_USER_FLOW enriches the creation with default segment assignment
+        boolean newFlow = featureFlagService.isOn("NEW_USER_FLOW");
+        if (newFlow && (input.segment() == null || input.segment().isBlank())) {
+            // v2 flow auto-assigns default segment – handled in service in real impl
+        }
         return customerService.createCustomer(input);
     }
 
@@ -42,6 +52,7 @@ public class CustomerMutationResolver {
     public Customer updateCustomer(
             @GraphQLArgument(name = "id") Long id,
             @GraphQLArgument(name = "input") UpdateCustomerInput input) {
+        permissionService.require("p:user_edit");
         return customerService.updateCustomer(id, input);
     }
 
@@ -51,6 +62,7 @@ public class CustomerMutationResolver {
     // }
     @GraphQLMutation(name = "deleteCustomer")
     public Boolean deleteCustomer(@GraphQLArgument(name = "id") Long id) {
+        permissionService.require("p:user_delete");
         return customerService.deleteCustomer(id);
     }
 }

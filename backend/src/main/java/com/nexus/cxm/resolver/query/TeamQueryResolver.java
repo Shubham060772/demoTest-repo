@@ -2,6 +2,8 @@ package com.nexus.cxm.resolver.query;
 
 import com.nexus.cxm.model.entity.Team;
 import com.nexus.cxm.model.entity.User;
+import com.nexus.cxm.service.FeatureFlagService;
+import com.nexus.cxm.service.PermissionService;
 import com.nexus.cxm.service.TeamService;
 import com.nexus.cxm.service.UserService;
 import io.leangen.graphql.annotations.GraphQLArgument;
@@ -27,6 +29,8 @@ public class TeamQueryResolver {
 
     private final TeamService teamService;
     private final UserService userService;
+    private final PermissionService permissionService;
+    private final FeatureFlagService featureFlagService;
 
     // ── Frontend operation: GetTeams ──────────────────────────────────────────
     // query GetTeams {
@@ -34,6 +38,7 @@ public class TeamQueryResolver {
     // }
     @GraphQLQuery(name = "teams")
     public List<Team> teams() {
+        permissionService.require("p:user_manage");
         return teamService.getAllTeams();
     }
 
@@ -43,6 +48,7 @@ public class TeamQueryResolver {
     // }
     @GraphQLQuery(name = "team")
     public Team team(@GraphQLArgument(name = "id") Long id) {
+        permissionService.require("p:user_manage");
         return teamService.getTeamById(id);
     }
 
@@ -52,6 +58,9 @@ public class TeamQueryResolver {
     // }
     @GraphQLQuery(name = "users")
     public List<User> users() {
+        permissionService.require("p:user_manage");
+        // USER_PROFILE_V2 flag enables extended user profile fields
+        boolean profileV2 = featureFlagService.isOn("USER_PROFILE_V2");
         return userService.getAllUsers();
     }
 }

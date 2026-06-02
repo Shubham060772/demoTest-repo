@@ -21,6 +21,7 @@ import java.util.List;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final FeatureFlagService featureFlagService;
 
     public Connection<Customer> getCustomers(Integer first, String after, CustomerFilterInput filter) {
         String search = filter != null ? filter.search() : null;
@@ -41,6 +42,10 @@ public class CustomerService {
         if (customerRepository.findByEmail(input.email()).isPresent()) {
             throw new BusinessValidationException("Customer with email " + input.email() + " already exists");
         }
+        // USER_PROFILE_V2 flag enables avatar-url support on creation
+        boolean profileV2 = featureFlagService.isOn("USER_PROFILE_V2");
+        String avatarUrl = profileV2 ? input.avatarUrl() : null;
+
         Customer customer = Customer.builder()
                 .firstName(input.firstName())
                 .lastName(input.lastName())
@@ -49,7 +54,7 @@ public class CustomerService {
                 .company(input.company())
                 .tags(input.tags() != null ? new ArrayList<>(input.tags()) : new ArrayList<>())
                 .segment(input.segment())
-                .avatarUrl(input.avatarUrl())
+                .avatarUrl(avatarUrl)
                 .build();
         return customerRepository.save(customer);
     }
@@ -62,7 +67,9 @@ public class CustomerService {
         if (input.email() != null) customer.setEmail(input.email());
         if (input.phone() != null) customer.setPhone(input.phone());
         if (input.company() != null) customer.setCompany(input.company());
-        if (input.tags() != null) customer.setTags(new ArrayList<>(input.tags()));
+        // NEW_USER_FLOW flag enables tag management on customer update
+        boolean newFlow = featureFlagService.isOn("NEW_USER_FLOW");
+        if (newFlow && input.tags() != null) customer.setTags(new ArrayList<>(input.tags()));
         if (input.segment() != null) customer.setSegment(input.segment());
         if (input.avatarUrl() != null) customer.setAvatarUrl(input.avatarUrl());
         return customerRepository.save(customer);

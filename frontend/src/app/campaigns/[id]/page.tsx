@@ -6,6 +6,9 @@ import Header from "@/components/layout/Header";
 import { ArrowLeft, AlertCircle, Target, TrendingUp, MousePointer, Eye } from "lucide-react";
 import Link from "next/link";
 import { use } from "react";
+import { can } from "@/lib/acl";
+import AclStore from "@/lib/acl";
+import { isOn } from "@/lib/featureFlags";
 
 function getStatusBadgeClass(status: string) {
   const map: Record<string, string> = {
@@ -27,7 +30,29 @@ function formatNumber(n: number) {
 
 export default function CampaignDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { data, loading, error } = useQuery(GET_CAMPAIGN, { variables: { id } });
+
+  // Permission & feature-flag checks
+  const canViewCampaign = can('p:campaign_view');
+  const canEditCampaign = AclStore.can('p:campaign_edit');
+  const canPublishCampaign = can('p:campaign_publish');
+  const showAdvancedAnalytics = can('p:advanced_analytics') && isOn('ADVANCED_ANALYTICS');
+  const showBulkOps = isOn('BULK_OPERATIONS');
+
+  const { data, loading, error } = useQuery(GET_CAMPAIGN, {
+    variables: { id },
+    skip: !canViewCampaign,
+  });
+
+  if (!canViewCampaign) return (
+    <>
+      <Header title="Campaign Detail" subtitle="Access Denied" />
+      <div className="empty-state">
+        <div className="empty-state-icon"><AlertCircle size={28} /></div>
+        <p className="empty-state-title">Access Denied</p>
+        <p className="empty-state-description">You need p:campaign_view permission.</p>
+      </div>
+    </>
+  );
 
   if (loading) return (
     <>
